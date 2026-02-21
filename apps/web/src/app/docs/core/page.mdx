@@ -1,0 +1,135 @@
+# Core API
+
+`@visual-json/core` is the headless engine behind visual-json. It converts raw JSON into an
+immutable tree structure that you can traverse, manipulate, diff, search, and validate —
+without any UI framework dependency.
+
+```bash
+npm install @visual-json/core
+```
+
+## Tree Model
+
+The tree model converts any JSON value into a normalized `TreeState` with unique node IDs.
+
+```ts
+import { fromJson, toJson, findNode, findNodeByPath } from "@visual-json/core";
+
+const state = fromJson({ name: "visual-json", version: 1 });
+const json = toJson(state.root);
+
+const node = findNode(state, "some-node-id");
+const versionNode = findNodeByPath(state, "$.version");
+```
+
+### Types
+
+<table>
+  <thead>
+    <tr><th>Type</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>JsonValue</code></td><td><code>string | number | boolean | null | JsonValue[] | &#123; [key: string]: JsonValue &#125;</code></td></tr>
+    <tr><td><code>NodeType</code></td><td><code>"string" | "number" | "boolean" | "null" | "object" | "array"</code></td></tr>
+    <tr><td><code>TreeNode</code></td><td>A node in the tree with <code>id</code>, <code>key</code>, <code>path</code>, <code>type</code>, <code>value</code>, <code>children</code>, and <code>parentId</code></td></tr>
+    <tr><td><code>TreeState</code></td><td>Contains <code>root: TreeNode</code> and <code>nodesById: Map&lt;string, TreeNode&gt;</code></td></tr>
+  </tbody>
+</table>
+
+## Operations
+
+All operations are immutable — they return a new `TreeState` without mutating the original.
+
+```ts
+import {
+  setValue,
+  setKey,
+  addProperty,
+  removeNode,
+  moveNode,
+  reorderChildren,
+  changeType,
+  duplicateNode,
+} from "@visual-json/core";
+
+let state = fromJson({ items: [1, 2, 3] });
+
+state = setValue(state, nodeId, "new value");
+state = setKey(state, nodeId, "newKey");
+state = addProperty(state, parentId, "count", 42);
+state = removeNode(state, nodeId);
+state = moveNode(state, nodeId, newParentId, 0);
+state = reorderChildren(state, parentId, 0, 2);
+state = changeType(state, nodeId, "string");
+state = duplicateNode(state, nodeId);
+```
+
+## History
+
+The `History` class provides undo/redo over tree states.
+
+```ts
+import { History } from "@visual-json/core";
+
+const history = new History();
+history.push(state);
+
+const previous = history.undo();
+const next = history.redo();
+
+console.log(history.canUndo, history.canRedo);
+```
+
+## Schema
+
+Resolve JSON Schemas from well-known filenames (e.g. `package.json`, `tsconfig.json`) and
+navigate schema properties by path.
+
+```ts
+import { resolveSchema, getPropertySchema, clearSchemaCache } from "@visual-json/core";
+
+const schema = await resolveSchema(json, "package.json");
+
+if (schema) {
+  const propSchema = getPropertySchema(schema, "$.scripts.build");
+  console.log(propSchema?.description);
+}
+```
+
+## Search
+
+Search across keys and values in the tree.
+
+```ts
+import { searchNodes, getAncestorIds } from "@visual-json/core";
+
+const matches = searchNodes(state, "version");
+// [{ nodeId: "...", field: "key" }, { nodeId: "...", field: "value" }]
+
+const ancestorIds = getAncestorIds(state, matches.map((m) => m.nodeId));
+```
+
+## Diff
+
+Compare two JSON values and get a list of changes.
+
+```ts
+import { computeDiff, getDiffPaths } from "@visual-json/core";
+
+const entries = computeDiff(originalJson, currentJson);
+// [{ path: "$.name", type: "changed", oldValue: "old", newValue: "new" }]
+
+const diffPaths = getDiffPaths(entries);
+// Map<string, "added" | "removed" | "changed" | "unchanged">
+```
+
+## Validation
+
+Validate a tree node against a JSON Schema property.
+
+```ts
+import { validateNode } from "@visual-json/core";
+
+const result = validateNode(node, schemaProperty);
+// { valid: boolean, errors: string[] }
+```

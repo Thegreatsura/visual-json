@@ -1,0 +1,66 @@
+# Getting Started
+
+visual-json is a visual JSON editor. It provides tree view, form view, diff view,
+and raw editing modes — all powered by a headless core library and a set of React components.
+
+## Packages
+
+visual-json is split into focused packages:
+
+<table>
+  <thead>
+    <tr><th>Package</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>@visual-json/core</code></td><td>Headless tree model, operations, schema resolution, diffing, search, and validation</td></tr>
+    <tr><td><code>@visual-json/react</code></td><td>React UI components — TreeView, FormView, DiffView, PropertyEditor, and more</td></tr>
+  </tbody>
+</table>
+
+## Installation
+
+Install the core library and React components:
+
+```bash
+npm install @visual-json/core @visual-json/react
+```
+
+## Quick Start
+
+Wrap your UI in the `VisualJson` provider, then use any combination of the built-in components:
+
+```tsx
+import { VisualJson, TreeView, PropertyEditor } from "@visual-json/react";
+import { useState } from "react";
+
+function Editor() {
+  const [value, setValue] = useState({ hello: "world" });
+
+  return (
+    <VisualJson value={value} onChange={setValue}>
+      <div style={{ display: "flex", gap: 16 }}>
+        <TreeView />
+        <PropertyEditor />
+      </div>
+    </VisualJson>
+  );
+}
+```
+
+The `VisualJson` component manages all internal state — tree structure, selection,
+expand/collapse, undo/redo, search, and schema. Child components read from and
+write to this shared context automatically.
+
+## View Modes
+
+visual-json supports multiple ways to view and edit your data:
+
+- **Tree View** — Hierarchical tree with expand/collapse, drag-and-drop reordering, keyboard navigation, and context menus
+- **Form View** — Schema-aware form editor with descriptions, required fields, and enum dropdowns
+- **Diff View** — Side-by-side comparison of original vs. edited JSON, with color-coded additions, removals, and changes
+- **Raw View** — Direct text editing of the underlying JSON
+
+## Next Steps
+
+- [Core API](/docs/core) — Learn about the headless tree model and operations
+- [React Components](/docs/react) — Explore the full component library

@@ -1,0 +1,213 @@
+# React Components
+
+`@visual-json/react` provides a complete set of React components for building visual JSON
+editors. All components are designed to work together inside a `VisualJson` provider.
+
+```bash
+npm install @visual-json/react @visual-json/core
+```
+
+## VisualJson
+
+The root provider that manages tree state, selection, expansion, undo/redo, search, and schema.
+All other components must be rendered inside this provider.
+
+```tsx
+import { VisualJson } from "@visual-json/react";
+
+<VisualJson value={json} onChange={setJson} schema={schema}>
+  {/* child components */}
+</VisualJson>
+```
+
+<table>
+  <thead>
+    <tr><th>Prop</th><th>Type</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>value</code></td><td><code>JsonValue</code></td><td>The JSON data to edit</td></tr>
+    <tr><td><code>onChange</code></td><td><code>(value: JsonValue) =&gt; void</code></td><td>Called when the data changes</td></tr>
+    <tr><td><code>schema</code></td><td><code>JsonSchema | null</code></td><td>Optional JSON Schema for validation and form hints</td></tr>
+    <tr><td><code>children</code></td><td><code>ReactNode</code></td><td>Child components</td></tr>
+  </tbody>
+</table>
+
+## TreeView
+
+Hierarchical tree with expand/collapse, drag-and-drop, keyboard navigation, and right-click
+context menus.
+
+```tsx
+import { TreeView } from "@visual-json/react";
+
+<TreeView className="h-full" />
+```
+
+### Utility
+
+`getVisibleNodes(root: TreeNode, expandedIds: Set<string>): TreeNode[]` returns the
+flat list of nodes currently visible in the tree.
+
+## FormView
+
+Schema-aware form editor. Renders fields with descriptions, required indicators, and
+enum dropdowns when a schema is provided.
+
+```tsx
+import { FormView } from "@visual-json/react";
+
+<FormView className="p-4" />
+```
+
+## DiffView
+
+Side-by-side comparison of two JSON values with color-coded additions, removals, and changes.
+
+```tsx
+import { DiffView } from "@visual-json/react";
+
+<DiffView originalJson={original} currentJson={current} />
+```
+
+<table>
+  <thead>
+    <tr><th>Prop</th><th>Type</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>originalJson</code></td><td><code>unknown</code></td><td>The original JSON value</td></tr>
+    <tr><td><code>currentJson</code></td><td><code>unknown</code></td><td>The current/modified JSON value</td></tr>
+    <tr><td><code>className</code></td><td><code>string</code></td><td>Optional CSS class</td></tr>
+  </tbody>
+</table>
+
+## PropertyEditor
+
+Editor panel for the currently selected node. Allows editing the key, value, and type,
+plus actions like add, remove, copy path, and copy value.
+
+```tsx
+import { PropertyEditor } from "@visual-json/react";
+
+<PropertyEditor className="w-80" />
+```
+
+## Breadcrumbs
+
+Displays the path to the currently selected node as clickable breadcrumbs.
+
+```tsx
+import { Breadcrumbs } from "@visual-json/react";
+
+<Breadcrumbs className="px-2 py-1" />
+```
+
+## SearchBar
+
+Search input with next/previous navigation. Supports `Cmd/Ctrl+F` to focus.
+
+```tsx
+import { SearchBar } from "@visual-json/react";
+
+<SearchBar className="w-full" />
+```
+
+## NodeIcon
+
+Renders a type icon for a tree node (`S` for string, `N` for number, `B` for boolean,
+`O` for object, `A` for array, `0` for null).
+
+```tsx
+import { NodeIcon } from "@visual-json/react";
+
+<NodeIcon type="string" />
+<NodeIcon type="object" error />
+```
+
+<table>
+  <thead>
+    <tr><th>Prop</th><th>Type</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>type</code></td><td><code>NodeType</code></td><td>The node type to display</td></tr>
+    <tr><td><code>error</code></td><td><code>boolean</code></td><td>Show error styling</td></tr>
+  </tbody>
+</table>
+
+## ContextMenu
+
+Rendered by TreeView on right-click. Can also be used standalone.
+
+```tsx
+import { ContextMenu } from "@visual-json/react";
+
+<ContextMenu
+  x={100}
+  y={200}
+  items={[
+    { label: "Copy", action: handleCopy },
+    { separator: true },
+    { label: "Delete", action: handleDelete },
+  ]}
+  onClose={handleClose}
+/>
+```
+
+## useStudio Hook
+
+Access the full studio state and actions from any component inside `VisualJson`.
+
+```tsx
+import { useStudio } from "@visual-json/react";
+
+function MyComponent() {
+  const { state, actions } = useStudio();
+
+  return (
+    <button onClick={() => actions.undo()} disabled={!actions.canUndo}>
+      Undo
+    </button>
+  );
+}
+```
+
+### State
+
+<table>
+  <thead>
+    <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>tree</code></td><td><code>TreeState</code></td><td>Current tree state</td></tr>
+    <tr><td><code>selectedNodeId</code></td><td><code>string | null</code></td><td>Currently selected node</td></tr>
+    <tr><td><code>expandedNodeIds</code></td><td><code>Set&lt;string&gt;</code></td><td>Set of expanded node IDs</td></tr>
+    <tr><td><code>schema</code></td><td><code>JsonSchema | null</code></td><td>Active JSON Schema</td></tr>
+    <tr><td><code>searchQuery</code></td><td><code>string</code></td><td>Current search query</td></tr>
+    <tr><td><code>searchMatches</code></td><td><code>SearchMatch[]</code></td><td>Search results</td></tr>
+    <tr><td><code>searchMatchIndex</code></td><td><code>number</code></td><td>Index of the active match</td></tr>
+    <tr><td><code>searchMatchNodeIds</code></td><td><code>Set&lt;string&gt;</code></td><td>Node IDs with matches</td></tr>
+  </tbody>
+</table>
+
+### Actions
+
+<table>
+  <thead>
+    <tr><th>Action</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>setTree(state)</code></td><td>Replace the tree state</td></tr>
+    <tr><td><code>selectNode(id)</code></td><td>Select a node</td></tr>
+    <tr><td><code>toggleExpand(id)</code></td><td>Toggle node expansion</td></tr>
+    <tr><td><code>expandNode(id)</code></td><td>Expand a node</td></tr>
+    <tr><td><code>collapseNode(id)</code></td><td>Collapse a node</td></tr>
+    <tr><td><code>expandAll()</code></td><td>Expand all nodes</td></tr>
+    <tr><td><code>collapseAll()</code></td><td>Collapse all nodes</td></tr>
+    <tr><td><code>undo()</code></td><td>Undo last change</td></tr>
+    <tr><td><code>redo()</code></td><td>Redo last undone change</td></tr>
+    <tr><td><code>canUndo</code></td><td>Whether undo is available</td></tr>
+    <tr><td><code>canRedo</code></td><td>Whether redo is available</td></tr>
+    <tr><td><code>setSearchQuery(q)</code></td><td>Update search query</td></tr>
+    <tr><td><code>nextSearchMatch()</code></td><td>Jump to next match</td></tr>
+    <tr><td><code>prevSearchMatch()</code></td><td>Jump to previous match</td></tr>
+  </tbody>
+</table>
